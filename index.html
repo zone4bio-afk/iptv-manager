@@ -782,32 +782,19 @@ async function analyze() {
   document.getElementById('btnSpin').style.display  = '';
   document.getElementById('analyzeBtn').disabled = true;
   const info = PLAYER_DEFAULTS[player];
-  const prompt = `Analyze this screenshot from the media player app "${info.name}".
-Extract the following:
-1. MAC Address (format XX:XX:XX:XX:XX:XX)
-${info.hasKey ? '2. Device Key (labeled Key, Device Key, Code, or similar)' : ''}
-Respond ONLY with a raw JSON object, no markdown, no text before or after:
-{"mac":"...","deviceKey":"..."}
-Use null for any field not visible in the image.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/analyze', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:256,
-        messages:[{ role:'user', content:[
-          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:imgB64}},
-          {type:'text',  text:prompt}
-        ]}]
+        imageBase64: imgB64,
+        playerName:  info.name,
+        hasKey:      info.hasKey
       })
     });
-    const data = await res.json();
-    const raw  = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch { const m=raw.match(/([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}/); parsed={mac:m?m[0]:null,deviceKey:null}; }
-    if (!parsed || !parsed.mac) {
+    const parsed = await res.json();
+    if (!res.ok || !parsed.mac) {
       showToast(tx('T_notFound'),'warn');
       document.getElementById('mbox').classList.add('show');
     } else {
