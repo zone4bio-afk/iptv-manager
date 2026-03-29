@@ -1,18 +1,5 @@
 const https = require('https');
 
-// Parse request body manually
-function parseBody(req) {
-  return new Promise((resolve, reject) => {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => {
-      try { resolve(JSON.parse(data)); }
-      catch { resolve({}); }
-    });
-    req.on('error', reject);
-  });
-}
-
 function callAnthropic(apiKey, payload) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify(payload);
@@ -46,29 +33,47 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  if (req.method !== 'POST')   { res.status(405).json({ error: 'Method not allowed' }); return; }
-
-  // Parse body manually - Vercel may not auto-parse large bodies
-  const body = await parseBody(req);
+  if (req.method !== 'POST') { res.status(405).json({ error: 'Method not allowed' }); return; }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured in Vercel' });
+    res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
     return;
   }
+
+  // Read body with size limit
+  const rawBody = await new Promise((resolve, reject) => {
+    let data = '';
+    let size = 0;
+    req.on('data', chunk => {
+      size += chunk.length;
+      if (size > 10 * 1024 * 1024) { // 10MB limit
+        reject(new Error('Request body too large'));
+        return;
+      }
+      data += chunk;
+    });
+    req.on('end', () => resolve(data));
+    req.on('error', reject);
+  });
+
+  let body;
+  try { body = JSON.parse(rawBody); }
+  catch { res.status(400).json({ error: 'Invalid JSON body' }); return; }
 
   const { imageBase64, playerName, hasKey } = body;
-  if (!imageBase64) {
-    res.status(400).json({ error: 'Missing imageBase64 in request body' });
-    return;
-  }
+  if (!imageBase64) { res.status(400).json({ error: 'Missing imageBase64' }); return; }
 
-  const prompt = `Look at this screenshot carefully. Extract:
-1. The MAC Address — usually 6 pairs of hex digits separated by colons like AA:BB:CC:DD:EE:FF. May be labeled "MAC", "Adresse Mac", "MAC Address".
-${hasKey ? '2. The Device Key — a short code labeled "Key", "Device Key", "Clé de l\'appareil", or just a number like 325281.' : ''}
-Reply ONLY with this exact JSON format, nothing else:
+  console.log('Image size (chars):', imageBase64.length);
+  console.log('Player:', playerName, 'hasKey:', hasKey);
+
+  const prompt = `Look at this screenshot from the app "${playerName || 'IPTV Player'}".
+Find and extract:
+1. MAC Address — 6 hex pairs like AA:BB:CC:DD:EE:FF (labeled MAC, Adresse Mac, or similar)
+${hasKey ? '2. Device Key — short code labeled Key, Device Key, Clé de l\'appareil (may be just digits like 325281)' : ''}
+Reply ONLY with JSON:
 {"mac":"XX:XX:XX:XX:XX:XX","deviceKey":"XXXXX"}
-Use null if a value is not found.`;
+Use null if not found.`;
 
   try {
     const result = await callAnthropic(apiKey, {
@@ -77,28 +82,26 @@ Use null if a value is not found.`;
       messages: [{
         role: 'user',
         content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 }
-          },
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
           { type: 'text', text: prompt }
         ]
       }]
     });
 
+    console.log('Anthropic status:', result.status);
+
     if (result.status !== 200) {
-      console.error('Anthropic error status:', result.status, result.body);
-      res.status(500).json({ error: JSON.stringify(result.body) });
+      console.error('Anthropic error:', JSON.stringify(result.body));
+      res.status(500).json({ error: result.body?.error?.message || 'Anthropic API error', details: result.body });
       return;
     }
 
     const text = (result.body.content || []).map(b => b.text || '').join('').replace(/```json|```/g, '').trim();
-    console.log('Anthropic response text:', text);
+    console.log('Response text:', text);
 
     let parsed;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
+    try { parsed = JSON.parse(text); }
+    catch {
       const macMatch = text.match(/([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}/);
       parsed = { mac: macMatch ? macMatch[0] : null, deviceKey: null };
     }
@@ -106,7 +109,7 @@ Use null if a value is not found.`;
     res.status(200).json(parsed);
 
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Error:', err.message, err.stack);
     res.status(500).json({ error: err.message });
   }
 };
