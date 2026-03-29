@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IPTV Manager Pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg:    #07090f; --bg2: #0c0f1a; --card: #0f1422; --card2: #131928;
+  --line:  #1b2235; --line2: #222d45;
+  --ink:   #dde4f0; --ink2: #8896b3; --ink3: #3d4d6b;
+  --blue:  #4f8ef7; --blue-g: rgba(79,142,247,.18);
+  --teal:  #2dd4bf; --teal-g: rgba(45,212,191,.15);
+  --green: #22c55e; --green-g: rgba(34,197,94,.14);
+  --amber: #f59e0b; --amber-g: rgba(245,158,11,.13);
+  --red:   #f43f5e;
+  --r: 13px; --r2: 9px;
+  --shadow: 0 4px 28px rgba(0,0,0,.55);
+  --font: 'Outfit', sans-serif;
+  --font-ar: 'Cairo', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background:var(--bg); color:var(--ink);
+  font-family:var(--font); min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+[dir=rtl] { font-family:var(--font-ar); }
+[dir=rtl] body { font-family:var(--font-ar); }
+
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:
+    radial-gradient(ellipse 60% 35% at 15% 0%, rgba(79,142,247,.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 30% at 85% 100%, rgba(45,212,191,.05) 0%, transparent 60%);
+}
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(79,142,247,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,142,247,.022) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+
+.app { position:relative; z-index:1; max-width:780px; margin:0 auto; padding:22px 14px 100px; }
+
+/* ── TOPBAR ── */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+  padding:13px 18px; margin-bottom:22px; box-shadow:var(--shadow); gap:10px;
+}
+.brand { display:flex; align-items:center; gap:13px; }
+.logo {
+  width:42px; height:42px; border-radius:11px; flex-shrink:0;
+  background:linear-gradient(135deg,#1a3a90,#4f8ef7);
+  display:flex; align-items:center; justify-content:center; font-size:21px;
+  box-shadow:0 0 20px var(--blue-g);
+}
+.brand h1 { font-size:16px; font-weight:800; }
+.brand h1 em { color:var(--blue); font-style:normal; }
+.brand p { font-size:10px; color:var(--ink3); font-family:var(--mono); margin-top:1px; }
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.lang-pill { display:flex; gap:2px; background:var(--bg2); border:1px solid var(--line); border-radius:8px; padding:3px; }
+.lang-btn { padding:4px 12px; border-radius:6px; border:none; cursor:pointer; font-family:var(--font); font-size:12px; font-weight:700; color:var(--ink3); background:none; transition:all .2s; }
+.lang-btn.on { background:var(--blue); color:#fff; }
+.icon-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--line); background:var(--bg2); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; transition:all .2s; }
+.icon-btn:hover { border-color:var(--blue); }
+
+/* ── SECTION LABEL ── */
+.slbl { display:flex; align-items:center; gap:9px; font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--ink3); margin-bottom:11px; font-family:var(--mono); }
+.slbl::after { content:''; flex:1; height:1px; background:var(--line); }
+[dir=rtl] .slbl::after { display:none; }
+[dir=rtl] .slbl::before { content:''; flex:1; height:1px; background:var(--line); }
+
+/* ── PLAYER GRID ── */
+.pgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:24px; }
+.pcard {
+  background:var(--card); border:1.5px solid var(--line); border-radius:var(--r);
+  padding:14px 10px; cursor:pointer; transition:all .22s; text-align:center; position:relative; overflow:hidden;
+}
+.pcard:hover { border-color:var(--line2); }
+.pcard.on { border-color:var(--blue); background:rgba(79,142,247,.06); box-shadow:0 0 0 1px rgba(79,142,247,.15),0 4px 20px var(--blue-g); }
+.pcard .icon { font-size:24px; margin-bottom:7px; }
+.pcard .name { font-size:12px; font-weight:800; }
+.pcard .sub  { font-size:9px; color:var(--ink3); font-family:var(--mono); margin-top:1px; }
+.pcard .ptags { display:flex; gap:4px; justify-content:center; margin-top:7px; flex-wrap:wrap; }
+.ptag { padding:2px 6px; border-radius:4px; font-size:9px; font-weight:700; font-family:var(--mono); border:1px solid; }
+.ptag-mac { background:rgba(34,197,94,.08); color:var(--green); border-color:rgba(34,197,94,.2); }
+.ptag-key { background:rgba(79,142,247,.08); color:var(--blue); border-color:rgba(79,142,247,.2); }
+.pcard .purl { font-size:9px; color:var(--ink3); font-family:var(--mono); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pcard .pcfg { font-size:9px; color:var(--amber); margin-top:3px; }
+.pcard .pcfg.ok { color:var(--green); }
+
+/* ── DROP ZONE ── */
+.drop { background:var(--card); border:1.5px dashed var(--line2); border-radius:var(--r); padding:40px 20px; text-align:center; cursor:pointer; transition:all .28s; position:relative; overflow:hidden; margin-bottom:10px; }
+.drop input { position:absolute; inset:0; opacity:0; cursor:pointer; z-index:3; }
+.drop:hover,.drop.over { border-color:var(--blue); background:rgba(79,142,247,.04); }
+.drop .dico { font-size:36px; margin-bottom:10px; display:block; }
+.drop h3 { font-size:13px; font-weight:800; margin-bottom:4px; }
+.drop p  { font-size:12px; color:var(--ink2); }
+.fmts { display:flex; gap:5px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+.fmt  { padding:2px 7px; background:var(--bg2); border:1px solid var(--line); border-radius:4px; font-size:9px; color:var(--ink3); font-family:var(--mono); }
+
+/* ── PREVIEW ── */
+.preview { display:none; margin-bottom:12px; }
+.preview.show { display:block; }
+.preview-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.preview-hd span { font-size:10px; color:var(--ink3); font-family:var(--mono); text-transform:uppercase; letter-spacing:2px; }
+.preview img { width:100%; max-height:240px; object-fit:contain; border-radius:10px; border:1px solid var(--line); background:var(--card); display:block; }
+
+/* ── MANUAL BOX ── */
+.manual-toggle { text-align:center; margin-bottom:12px; }
+.ghost { background:none; border:none; color:var(--ink3); font-family:var(--font); font-size:12px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; transition:color .2s; }
+.ghost:hover { color:var(--ink2); }
+[dir=rtl] .ghost { font-family:var(--font-ar); }
+.mbox { background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:16px; margin-bottom:14px; display:none; }
+.mbox.show { display:block; animation:up .25s ease; }
+
+/* ── FORM ── */
+.fg { margin-bottom:13px; }
+.fg:last-child { margin-bottom:0; }
+.fg label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--ink3); display:block; margin-bottom:6px; font-family:var(--mono); }
+[dir=rtl] .fg label { font-family:var(--font-ar); letter-spacing:0; }
+.fg input, .fg select, .fg textarea {
+  width:100%; background:var(--bg2); border:1.5px solid var(--line); color:var(--ink);
+  padding:9px 13px; border-radius:var(--r2); font-family:var(--mono); font-size:13px;
+  outline:none; transition:border .2s; letter-spacing:.4px;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus { border-color:var(--blue); }
+.fg input::placeholder { color:var(--ink3); letter-spacing:normal; }
+.fg select option { background:var(--card2); }
+.fg textarea { resize:vertical; min-height:60px; }
+
+/* ── BUTTONS ── */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:10px 18px; border-radius:var(--r2); border:none; cursor:pointer; font-family:var(--font); font-size:13px; font-weight:700; transition:all .2s; white-space:nowrap; }
+[dir=rtl] .btn { font-family:var(--font-ar); }
+.btn-full { width:100%; }
+.btn-blue   { background:var(--blue); color:#fff; box-shadow:0 3px 16px var(--blue-g); }
+.btn-blue:hover { background:#6ba3f9; transform:translateY(-1px); }
+.btn-blue:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.btn-out    { background:var(--card2); border:1px solid var(--line2); color:var(--ink2); }
+.btn-out:hover { border-color:var(--blue); color:var(--blue); }
+.btn-green  { background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.25); color:var(--green); }
+.btn-green:hover { background:rgba(34,197,94,.18); }
+.btn-amber  { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.22); color:var(--amber); }
+.btn-amber:hover { background:rgba(245,158,11,.16); }
+.btn-ghost  { background:none; border:1px solid var(--line); color:var(--ink3); }
+.btn-ghost:hover { border-color:var(--red); color:var(--red); }
+.btn-teal   { background:rgba(45,212,191,.09); border:1px solid rgba(45,212,191,.22); color:var(--teal); }
+.btn-teal:hover { background:rgba(45,212,191,.16); }
+.btn-sm  { padding:7px 13px; font-size:12px; border-radius:7px; }
+.btn-xs  { padding:4px 10px; font-size:11px; border-radius:6px; }
+
+.spin { width:15px; height:15px; border:2px solid rgba(255,255,255,.22); border-top-color:#fff; border-radius:50%; animation:rot .65s linear infinite; display:none; }
+@keyframes rot { to { transform:rotate(360deg); } }
+
+/* ── RESULT CARD ── */
+.rcard { background:var(--card); border:1px solid var(--line2); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow); margin-top:20px; display:none; }
+.rcard.show { display:block; animation:up .32s ease; }
+@keyframes up { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+.r-head { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.r-title { font-size:14px; font-weight:800; display:flex; align-items:center; gap:8px; }
+.badges { display:flex; gap:6px; flex-wrap:wrap; }
+.badge { padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; font-family:var(--mono); border:1px solid; }
+.badge-b { background:rgba(79,142,247,.1); color:#93c5fd; border-color:rgba(79,142,247,.25); }
+.badge-g { background:rgba(34,197,94,.08); color:#86efac; border-color:rgba(34,197,94,.2); }
+
+.r-body { padding:18px; }
+
+.cf { margin-bottom:13px; }
+.cf-lbl { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--ink3); margin-bottom:7px; display:flex; align-items:center; gap:7px; font-family:var(--mono); }
+[dir=rtl] .cf-lbl { letter-spacing:0; font-family:var(--font-ar); }
+.cf-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.cf-row { display:flex; align-items:center; gap:10px; background:var(--bg2); border:1.5px solid var(--line); border-radius:9px; padding:11px 14px; }
+.cf-val { flex:1; font-family:var(--mono); font-size:15px; font-weight:600; color:#93c5fd; letter-spacing:.8px; word-break:break-all; }
+.cpbtn { padding:5px 12px; border-radius:7px; cursor:pointer; font-size:11px; font-weight:700; transition:all .2s; white-space:nowrap; flex-shrink:0; border:1px solid rgba(79,142,247,.2); background:rgba(79,142,247,.08); color:#93c5fd; }
+.cpbtn:hover { background:rgba(79,142,247,.16); }
+.cpbtn.ok { background:rgba(34,197,94,.1); border-color:rgba(34,197,94,.25); color:var(--green); }
+
+/* ── STEPS ── */
+.steps-lbl { font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--ink3); margin:18px 0 10px; font-family:var(--mono); }
+.step { border:1.5px solid var(--line); border-radius:var(--r); margin-bottom:8px; overflow:hidden; transition:all .25s; background:var(--card2); }
+.step.active { border-color:var(--blue); box-shadow:0 0 0 1px rgba(79,142,247,.12),0 4px 18px var(--blue-g); }
+.step.done   { border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.03); }
+.step-hd { display:flex; align-items:center; gap:13px; padding:13px 16px; }
+.snum {
+  width:29px; height:29px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; font-family:var(--mono); flex-shrink:0; transition:all .25s;
+  background:var(--card); border:1.5px solid var(--line); color:var(--ink3);
+}
+.step.active .snum { background:var(--blue); border-color:var(--blue); color:#fff; }
+.step.done   .snum { background:var(--green); border-color:var(--green); color:#fff; font-size:15px; }
+.step-info .sttl { font-size:13px; font-weight:800; margin-bottom:2px; }
+.step-info .ssub { font-size:11px; color:var(--ink2); }
+.step-body { padding:0 16px 16px; display:none; }
+.step.active .step-body { display:block; animation:up .24s ease; }
+
+/* ── INFO BOX ── */
+.ibox { display:flex; gap:10px; align-items:flex-start; border-radius:9px; padding:11px 13px; font-size:12px; line-height:1.65; margin-bottom:13px; }
+.ibox.amber { background:rgba(245,158,11,.05); border:1px solid rgba(245,158,11,.15); color:#fcd34d; }
+.ibox.blue  { background:rgba(79,142,247,.05); border:1px solid rgba(79,142,247,.15); color:#93c5fd; }
+.ibox.green { background:rgba(34,197,94,.05);  border:1px solid rgba(34,197,94,.15);  color:#86efac; }
+
+/* ── GUIDE BOX ── */
+.guide { background:var(--bg2); border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:13px; }
+.gstep { display:flex; align-items:flex-start; gap:10px; margin-bottom:9px; }
+.gstep:last-child { margin-bottom:0; }
+.gnum { width:22px; height:22px; border-radius:50%; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:var(--blue); flex-shrink:0; font-family:var(--mono); }
+.gtxt { font-size:12px; color:var(--ink2); line-height:1.55; padding-top:2px; }
+.hl { color:var(--blue); font-weight:700; background:rgba(79,142,247,.1); padding:1px 5px; border-radius:4px; font-family:var(--mono); }
+.hl-g { color:var(--green); font-weight:700; background:rgba(34,197,94,.1); padding:1px 5px; border-radius:4px; font-family:var(--mono); }
+
+/* ── M3U PASTE ── */
+.m3u-in { width:100%; background:var(--bg2); border:1.5px solid rgba(45,212,191,.25); color:var(--teal); padding:10px 13px; border-radius:var(--r2); font-family:var(--mono); font-size:12px; outline:none; box-sizing:border-box; margin-bottom:10px; letter-spacing:.3px; }
+.m3u-in:focus { border-color:var(--teal); }
+.m3u-in::placeholder { color:var(--ink3); }
+.m3u-box { background:var(--bg2); border:1.5px solid rgba(45,212,191,.22); border-radius:10px; padding:13px; margin-bottom:10px; display:none; }
+.m3u-box.show { display:block; animation:up .25s ease; }
+.m3u-lbl { font-size:10px; color:var(--ink3); font-family:var(--mono); text-transform:uppercase; letter-spacing:2px; margin-bottom:7px; }
+.m3u-val { font-family:var(--mono); font-size:12px; color:var(--teal); word-break:break-all; line-height:1.75; }
+
+.acts { display:flex; gap:8px; flex-wrap:wrap; margin-top:11px; }
+.url-row { display:flex; gap:8px; margin-bottom:12px; }
+.url-row input { flex:1; background:var(--bg2); border:1.5px solid var(--line); color:var(--ink); padding:9px 12px; border-radius:var(--r2); font-family:var(--mono); font-size:12px; outline:none; transition:border .2s; min-width:0; }
+.url-row input:focus { border-color:var(--blue); }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.span2 { grid-column:1/-1; }
+
+/* ── SUCCESS ── */
+.success { display:none; text-align:center; padding:48px 20px; background:var(--card); border:1px solid rgba(34,197,94,.2); border-radius:var(--r); box-shadow:0 0 40px rgba(34,197,94,.07); margin-top:22px; }
+.success.show { display:block; animation:up .4s ease; }
+.s-emoji { font-size:52px; display:block; margin-bottom:16px; animation:pop .5s cubic-bezier(.34,1.56,.64,1) both .1s; }
+@keyframes pop { from { transform:scale(.4); opacity:0; } }
+.s-title { font-size:22px; font-weight:900; color:var(--green); margin-bottom:8px; }
+.s-sub   { font-size:13px; color:var(--ink2); margin-bottom:24px; }
+.recap { background:var(--bg2); border-radius:10px; padding:14px 18px; text-align:left; max-width:420px; margin:0 auto 24px; font-family:var(--mono); font-size:12px; color:var(--ink2); line-height:2.2; border:1px solid var(--line); }
+.recap .rv { color:var(--teal); }
+
+/* ── SETTINGS SCREEN ── */
+.settings-overlay { display:none; position:fixed; inset:0; background:rgba(7,9,15,.97); z-index:100; overflow-y:auto; }
+.settings-overlay.show { display:block; animation:fade .25s ease; }
+@keyframes fade { from { opacity:0; } }
+.settings-wrap { max-width:720px; margin:0 auto; padding:24px 14px 80px; }
+.settings-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+.settings-header h2 { font-size:18px; font-weight:800; display:flex; align-items:center; gap:10px; }
+.settings-section { background:var(--card); border:1px solid var(--line); border-radius:var(--r); margin-bottom:16px; overflow:hidden; }
+.settings-section-title { padding:14px 18px; border-bottom:1px solid var(--line); font-size:12px; font-weight:700; color:var(--blue); text-transform:uppercase; letter-spacing:2px; font-family:var(--mono); display:flex; align-items:center; gap:8px; }
+.settings-body { padding:18px; }
+.server-card { background:var(--bg2); border:1px solid var(--line); border-radius:var(--r2); padding:14px; margin-bottom:10px; position:relative; }
+.server-card:last-child { margin-bottom:0; }
+.server-del { position:absolute; top:10px; right:10px; background:none; border:none; cursor:pointer; color:var(--ink3); font-size:14px; transition:color .2s; }
+[dir=rtl] .server-del { right:auto; left:10px; }
+.server-del:hover { color:var(--red); }
+.server-name { font-size:13px; font-weight:800; margin-bottom:10px; color:var(--ink); display:flex; align-items:center; gap:8px; }
+.add-server-btn { width:100%; padding:11px; border-radius:var(--r2); border:1.5px dashed var(--line2); background:none; color:var(--ink3); font-family:var(--font); font-size:13px; font-weight:700; cursor:pointer; transition:all .2s; margin-top:10px; }
+.add-server-btn:hover { border-color:var(--blue); color:var(--blue); }
+[dir=rtl] .add-server-btn { font-family:var(--font-ar); }
+
+.player-cfg-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+.player-cfg-row:last-child { border-bottom:none; }
+.player-cfg-icon { font-size:20px; width:32px; text-align:center; flex-shrink:0; }
+.player-cfg-name { font-size:12px; font-weight:800; width:100px; flex-shrink:0; }
+.player-cfg-input { flex:1; background:var(--bg2); border:1px solid var(--line); color:var(--ink); padding:7px 11px; border-radius:7px; font-family:var(--mono); font-size:12px; outline:none; transition:border .2s; }
+.player-cfg-input:focus { border-color:var(--blue); }
+.player-cfg-lbl { font-size:10px; color:var(--ink3); font-family:var(--mono); width:32px; text-align:center; flex-shrink:0; }
+
+.save-settings { width:100%; padding:13px; border-radius:var(--r2); background:var(--green); border:none; color:#fff; font-family:var(--font); font-size:14px; font-weight:800; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 20px var(--green-g); margin-top:20px; }
+.save-settings:hover { background:#16a34a; }
+[dir=rtl] .save-settings { font-family:var(--font-ar); }
+
+/* ── SERVER SELECTOR ── */
+.server-sel { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:0; }
+.ssel { padding:7px 14px; border-radius:8px; border:1.5px solid var(--line); background:var(--card); cursor:pointer; font-size:12px; font-weight:700; color:var(--ink2); transition:all .2s; }
+.ssel:hover { border-color:var(--line2); }
+.ssel.on { border-color:var(--teal); background:rgba(45,212,191,.07); color:var(--teal); box-shadow:0 0 12px var(--teal-g); }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; right:18px; z-index:9999; background:var(--card2); border-radius:10px; padding:10px 16px; font-size:13px; font-weight:700; box-shadow:0 8px 32px rgba(0,0,0,.6); transform:translateY(60px) scale(.95); opacity:0; transition:all .3s; pointer-events:none; display:flex; align-items:center; gap:8px; max-width:300px; border:1px solid; }
+.toast.show { transform:translateY(0) scale(1); opacity:1; }
+.toast.ok   { border-color:rgba(34,197,94,.3); color:var(--green); }
+.toast.warn { border-color:rgba(245,158,11,.3); color:var(--amber); }
+.toast.inf  { border-color:rgba(79,142,247,.3); color:#93c5fd; }
+[dir=rtl] .toast { right:auto; left:18px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:500px) {
+  .pgrid { grid-template-columns:1fr; }
+  .g2 { grid-template-columns:1fr; }
+  .acts { flex-direction:column; }
+  .player-cfg-row { flex-wrap:wrap; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="mainApp">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">📡</div>
+      <div>
+        <h1 id="h-title">IPTV <em>Manager</em> Pro</h1>
+        <p id="h-sub">Activation • 3 Players • Test gratuit</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="lang-pill">
+        <button class="lang-btn on" onclick="setLang('fr')">FR</button>
+        <button class="lang-btn"    onclick="setLang('ar')">عربي</button>
+      </div>
+      <div class="icon-btn" onclick="openSettings()" title="Paramètres">⚙️</div>
+    </div>
+  </div>
+
+  <!-- SERVER SELECTOR -->
+  <div id="serverSelSection" style="margin-bottom:20px; display:none;">
+    <div class="slbl"><span id="lbl-server">② Choisir le serveur IPTV</span></div>
+    <div class="server-sel" id="serverSelRow"></div>
+  </div>
+
+  <!-- PLAYER -->
+  <div class="slbl"><span id="lbl-player">① Choisir le media player</span></div>
+  <div class="pgrid">
+    <div class="pcard on" id="pc-ibo" onclick="pickPlayer('ibo')">
+      <div class="icon">📺</div>
+      <div class="name">IBO Player</div>
+      <div class="sub">Standard</div>
+      <div class="ptags"><span class="ptag ptag-mac">MAC</span><span class="ptag ptag-key">KEY</span></div>
+      <div class="purl">iboplayer.com/device/login</div>
+      <div class="pcfg" id="ibo-cfg-status"></div>
+    </div>
+    <div class="pcard" id="pc-ibopro" onclick="pickPlayer('ibopro')">
+      <div class="icon">🎬</div>
+      <div class="name">IBO Player PRO</div>
+      <div class="sub">Premium</div>
+      <div class="ptags"><span class="ptag ptag-mac">MAC</span><span class="ptag ptag-key">KEY</span></div>
+      <div class="purl">iboplayer.pro/manage-playlists</div>
+      <div class="pcfg" id="ibopro-cfg-status"></div>
+    </div>
+    <div class="pcard" id="pc-hot" onclick="pickPlayer('hot')">
+      <div class="icon">🔥</div>
+      <div class="name">HOT Player PRO</div>
+      <div class="sub">Hot</div>
+      <div class="ptags"><span class="ptag ptag-mac">MAC</span></div>
+      <div class="purl">hotplayer.app/fr/reseller/index</div>
+      <div class="pcfg" id="hot-cfg-status"></div>
+    </div>
+  </div>
+
+  <!-- UPLOAD -->
+  <div class="slbl"><span id="lbl-img">② Image reçue du client</span></div>
+  <div class="drop" id="dropZone" ondrop="onDrop(event)" ondragover="onDrag(event,1)" ondragleave="onDrag(event,0)">
+    <input type="file" id="fileIn" accept="image/*" onchange="onFile(event)">
+    <span class="dico">🖼️</span>
+    <h3 id="drop-title">Glissez l'image ici</h3>
+    <p  id="drop-sub">ou cliquez pour sélectionner</p>
+    <div class="fmts"><span class="fmt">JPG</span><span class="fmt">PNG</span><span class="fmt">WEBP</span><span class="fmt">SCREENSHOT</span></div>
+  </div>
+
+  <div class="preview" id="preview">
+    <div class="preview-hd">
+      <span id="prev-lbl">IMAGE REÇUE</span>
+      <button class="btn btn-sm btn-ghost" onclick="clearImg()" id="btn-clear">✕ Effacer</button>
+    </div>
+    <img id="prevImg" src="" alt="">
+  </div>
+
+  <div class="manual-toggle">
+    <button class="ghost" onclick="toggleManual()" id="btn-manual">✎ Saisir les codes manuellement</button>
+  </div>
+  <div class="mbox" id="mbox">
+    <div class="fg"><label id="lbl-mmac">Adresse MAC</label><input type="text" id="mMac" placeholder="00:1A:79:XX:XX:XX" spellcheck="false" autocomplete="off"></div>
+    <div class="fg" id="mKeyFg"><label id="lbl-mkey">Device Key</label><input type="text" id="mKey" placeholder="XXXXXX-XXXXXX" spellcheck="false" autocomplete="off"></div>
+    <button class="btn btn-out btn-full" onclick="useManual()" id="btn-confirm">✓ Confirmer et continuer</button>
+  </div>
+
+  <button class="btn btn-blue btn-full" id="analyzeBtn" onclick="analyze()" disabled>
+    <span id="btn-scan">🔍 Analyser l'image et extraire les codes</span>
+    <div class="spin" id="btnSpin"></div>
+  </button>
+
+  <!-- RESULT -->
+  <div class="rcard" id="rcard">
+    <div class="r-head">
+      <div class="r-title">✅ <span id="r-extracted">Codes extraits</span></div>
+      <div class="badges">
+        <span class="badge badge-b" id="badge-player">IBO Player</span>
+        <span class="badge badge-g" id="badge-ready">PRÊT</span>
+      </div>
+    </div>
+    <div class="r-body">
+      <div class="cf">
+        <div class="cf-lbl"><div class="cf-dot" style="background:var(--green)"></div><span id="cf-mac">Adresse MAC</span></div>
+        <div class="cf-row"><span class="cf-val" id="dMac">–</span><button class="cpbtn" id="cp-mac" onclick="copyField('dMac','cp-mac')">Copier</button></div>
+      </div>
+      <div class="cf" id="keyField">
+        <div class="cf-lbl"><div class="cf-dot" style="background:var(--blue)"></div><span id="cf-key">Device Key</span></div>
+        <div class="cf-row"><span class="cf-val" id="dKey">–</span><button class="cpbtn" id="cp-key" onclick="copyField('dKey','cp-key')">Copier</button></div>
+      </div>
+
+      <div class="steps-lbl" id="steps-lbl">ÉTAPES D'ACTIVATION</div>
+
+      <!-- STEP 1 -->
+      <div class="step active" id="st1">
+        <div class="step-hd">
+          <div class="snum" id="sn1">1</div>
+          <div class="step-info">
+            <div class="sttl" id="s1t">Ouvrir le portail d'upload playlist</div>
+            <div class="ssub" id="s1s">Coller le MAC et la Key dans la page d'activation</div>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="ibox amber"><span>💡</span><div id="s1info">Les codes ont été copiés. Ouvrez le portail, collez le MAC (et la Key si demandée) dans les champs, puis validez.</div></div>
+          <div class="url-row">
+            <input type="text" id="portalUrlIn" placeholder="https://..." spellcheck="false">
+            <button class="btn btn-blue btn-sm" onclick="openPortal()" id="btn-openp">🔗 Ouvrir</button>
+          </div>
+          <div class="acts">
+            <button class="btn btn-out btn-sm" onclick="copyBoth()" id="btn-copyboth">📋 Copier MAC + Key</button>
+            <button class="btn btn-green btn-sm" onclick="stepDone(1)" id="btn-s1done">✓ Fait — Étape suivante</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step" id="st2">
+        <div class="step-hd">
+          <div class="snum" id="sn2">2</div>
+          <div class="step-info">
+            <div class="sttl" id="s2t">Créer le test gratuit sur le panel</div>
+            <div class="ssub" id="s2s">Add Line → 48h → copier le lien M3U</div>
+          </div>
+        </div>
+        <div class="step-body">
+          <!-- guide -->
+          <div class="guide" id="s2-guide">
+            <div class="gstep"><div class="gnum">1</div><div class="gtxt" id="g1">Cliquez sur <span class="hl">Add Line</span> dans votre panel IPTV</div></div>
+            <div class="gstep"><div class="gnum">2</div><div class="gtxt" id="g2">Dans la liste déroulante, choisissez <span class="hl">48 heures</span></div></div>
+            <div class="gstep"><div class="gnum">3</div><div class="gtxt" id="g3">Créez le compte — notez le <span class="hl-g">username</span> et <span class="hl-g">password</span> générés</div></div>
+            <div class="gstep"><div class="gnum">4</div><div class="gtxt" id="g4">Ouvrez la fiche du nouvel user → copiez le <span class="hl">lien M3U</span> → revenez ici et collez-le ci-dessous</div></div>
+          </div>
+          <div class="acts" style="margin-top:0; margin-bottom:13px;">
+            <button class="btn btn-blue btn-sm" onclick="openMyPanel()" id="btn-openpanel">🔗 Ouvrir mon panel IPTV</button>
+          </div>
+          <div class="fg">
+            <label id="lbl-m3u-paste">Coller ici le lien M3U copié depuis le panel</label>
+            <input type="text" id="m3uPasteIn" class="m3u-in" placeholder="http://monserveur.com:8080/get.php?username=...&password=...&type=m3u_plus" spellcheck="false" oninput="onM3UInput()">
+          </div>
+          <div class="m3u-box" id="m3uPreview">
+            <div class="m3u-lbl" id="m3u-lbl">LIEN M3U CONFIRMÉ</div>
+            <div class="m3u-val" id="m3uVal"></div>
+          </div>
+          <div class="acts">
+            <button class="btn btn-teal btn-sm" onclick="confirmM3U()" id="btn-m3u-confirm">✓ Confirmer ce lien M3U</button>
+            <button class="btn btn-green btn-sm" onclick="stepDone(2)" id="btn-s2done" style="display:none">✓ Lien confirmé — Étape suivante</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step" id="st3">
+        <div class="step-hd">
+          <div class="snum" id="sn3">3</div>
+          <div class="step-info">
+            <div class="sttl" id="s3t">Coller le M3U dans le portail player</div>
+            <div class="ssub" id="s3s">Retourner au portail et coller dans le champ Playlist</div>
+          </div>
+        </div>
+        <div class="step-body">
+          <div class="ibox blue"><span>📌</span><div id="s3info">Retournez sur l'onglet du portail player. Dans le champ <strong>Playlist URL</strong> ou <strong>M3U Link</strong>, collez le lien. Puis cliquez <strong>Confirmer / Submit</strong>.</div></div>
+          <div class="acts">
+            <button class="btn btn-out btn-sm" onclick="recopyM3U()" id="btn-recopy">📋 Re-copier le lien M3U</button>
+            <button class="btn btn-amber btn-sm" onclick="reopenPortal()" id="btn-reopen">↩ Retour au portail</button>
+            <button class="btn btn-green btn-sm" onclick="stepDone(3)" id="btn-s3done">🎉 Terminé !</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="successSec">
+    <span class="s-emoji">🎉</span>
+    <div class="s-title" id="s-title">Client activé !</div>
+    <div class="s-sub"   id="s-sub">Test gratuit 48h créé et playlist configurée avec succès.</div>
+    <div class="recap" id="recapBox"></div>
+    <button class="btn btn-blue" onclick="newClient()" id="btn-new">➕ Nouveau client</button>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ════════ SETTINGS OVERLAY ════════ -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-wrap">
+    <div class="settings-header">
+      <h2>⚙️ <span id="cfg-title">Configuration</span></h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeSettings()" id="btn-close-cfg">✕ Fermer</button>
+    </div>
+
+    <!-- IPTV SERVERS -->
+    <div class="settings-section">
+      <div class="settings-section-title">🖥️ <span id="cfg-servers">Serveurs IPTV (panels)</span></div>
+      <div class="settings-body">
+        <div id="serversList"></div>
+        <button class="add-server-btn" onclick="addServer()" id="btn-add-server">+ Ajouter un serveur IPTV</button>
+      </div>
+    </div>
+
+    <!-- PLAYER PORTALS -->
+    <div class="settings-section">
+      <div class="settings-section-title">📺 <span id="cfg-players">URLs des portails player</span></div>
+      <div class="settings-body">
+        <div class="player-cfg-row">
+          <div class="player-cfg-icon">📺</div>
+          <div class="player-cfg-name">IBO Player</div>
+          <div class="player-cfg-lbl" style="width:auto; font-size:10px; color:var(--ink3); font-family:var(--mono);">URL :</div>
+          <input class="player-cfg-input" type="text" id="cfg-ibo-url" placeholder="https://iboplayer.com/device/login" spellcheck="false">
+        </div>
+        <div class="player-cfg-row">
+          <div class="player-cfg-icon">🎬</div>
+          <div class="player-cfg-name">IBO PRO</div>
+          <div class="player-cfg-lbl" style="width:auto; font-size:10px; color:var(--ink3); font-family:var(--mono);">URL :</div>
+          <input class="player-cfg-input" type="text" id="cfg-ibopro-url" placeholder="https://iboplayer.pro/manage-playlists/" spellcheck="false">
+        </div>
+        <div class="player-cfg-row">
+          <div class="player-cfg-icon">🔥</div>
+          <div class="player-cfg-name">HOT Player</div>
+          <div class="player-cfg-lbl" style="width:auto; font-size:10px; color:var(--ink3); font-family:var(--mono);">URL :</div>
+          <input class="player-cfg-input" type="text" id="cfg-hot-url" placeholder="https://hotplayer.app/fr/reseller/index" spellcheck="false">
+        </div>
+      </div>
+    </div>
+
+    <button class="save-settings" onclick="saveSettings()" id="btn-save-cfg">💾 Sauvegarder la configuration</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ PLAYER DEFAULTS ══════════════════════════ */
+const PLAYER_DEFAULTS = {
+  ibo:    { name:"IBO Player",     hasKey:true,  url:"https://iboplayer.com/device/login"          },
+  ibopro: { name:"IBO Player PRO", hasKey:true,  url:"https://iboplayer.pro/manage-playlists/"     },
+  hot:    { name:"HOT Player PRO", hasKey:false, url:"https://hotplayer.app/fr/reseller/index"     },
+};
+
+/* ══ STATE ════════════════════════════════════ */
+let lang      = 'fr';
+let player    = 'ibo';
+let imgB64    = '';
+let MAC       = '', KEY = '', M3U_CONFIRMED = '';
+let portalOpened = '';
+let activeStep = 1;
+let selectedServer = null; // index in cfg.servers
+
+/* ══ CONFIG (localStorage) ════════════════════ */
+let cfg = {
+  servers: [],   // [{name, url, login, pass}]
+  players: { ibo:"", ibopro:"", hot:"" }
+};
+
+function loadCfg() {
+  try { const s = localStorage.getItem('iptv_mgr_cfg'); if (s) cfg = JSON.parse(s); } catch {}
+  // fill player urls from cfg or defaults
+  Object.keys(PLAYER_DEFAULTS).forEach(p => {
+    if (!cfg.players) cfg.players = {};
+    if (!cfg.players[p]) cfg.players[p] = PLAYER_DEFAULTS[p].url;
+  });
+}
+
+function saveCfg() {
+  localStorage.setItem('iptv_mgr_cfg', JSON.stringify(cfg));
+}
+
+/* ══ TRANSLATIONS ═════════════════════════════ */
+const TX = {
+  fr:{
+    'h-title':'IPTV <em>Manager</em> Pro','h-sub':'Activation • 3 Players • Test gratuit',
+    'lbl-player':'① Choisir le media player','lbl-server':'② Choisir le serveur IPTV','lbl-img':'③ Image reçue du client',
+    'drop-title':'Glissez l\'image ici','drop-sub':'ou cliquez pour sélectionner','prev-lbl':'IMAGE REÇUE',
+    'btn-clear':'✕ Effacer','btn-manual':'✎ Saisir les codes manuellement',
+    'lbl-mmac':'Adresse MAC','lbl-mkey':'Device Key','btn-confirm':'✓ Confirmer et continuer',
+    'btn-scan':'🔍 Analyser l\'image et extraire les codes','analyzing':'Analyse IA en cours...',
+    'r-extracted':'Codes extraits','badge-ready':'PRÊT','cf-mac':'Adresse MAC','cf-key':'Device Key',
+    'steps-lbl':'ÉTAPES D\'ACTIVATION',
+    's1t':'Ouvrir le portail d\'upload playlist','s1s':'Coller le MAC et la Key dans la page d\'activation',
+    's1info':'Les codes ont été copiés. Ouvrez le portail, collez le MAC (et la Key si demandée), puis validez.',
+    'btn-openp':'🔗 Ouvrir','btn-copyboth':'📋 Copier MAC + Key','btn-s1done':'✓ Fait — Étape suivante',
+    's2t':'Créer le test gratuit sur le panel','s2s':'Add Line → 48h → copier le lien M3U',
+    'g1':'Cliquez sur <span class="hl">Add Line</span> dans votre panel IPTV',
+    'g2':'Dans la liste déroulante, choisissez <span class="hl">48 heures</span>',
+    'g3':'Créez le compte — notez le <span class="hl-g">username</span> et <span class="hl-g">password</span> générés',
+    'g4':'Ouvrez la fiche du nouvel user → copiez le <span class="hl">lien M3U</span> → revenez ici et collez-le ci-dessous',
+    'btn-openpanel':'🔗 Ouvrir mon panel IPTV','lbl-m3u-paste':'Coller ici le lien M3U copié depuis le panel',
+    'm3u-lbl':'LIEN M3U CONFIRMÉ','btn-m3u-confirm':'✓ Confirmer ce lien M3U','btn-s2done':'✓ Lien confirmé — Étape suivante',
+    's3t':'Coller le M3U dans le portail player','s3s':'Retourner au portail et coller dans le champ Playlist',
+    's3info':'Retournez sur l\'onglet du portail player. Dans le champ <strong>Playlist URL</strong> ou <strong>M3U Link</strong>, collez le lien. Puis cliquez <strong>Confirmer / Submit</strong>.',
+    'btn-recopy':'📋 Re-copier le lien M3U','btn-reopen':'↩ Retour au portail','btn-s3done':'🎉 Terminé !',
+    's-title':'Client activé !','s-sub':'Test gratuit 48h créé et playlist configurée avec succès.','btn-new':'➕ Nouveau client',
+    'cfg-title':'Configuration','cfg-servers':'Serveurs IPTV (panels)','cfg-players':'URLs des portails player',
+    'btn-add-server':'+ Ajouter un serveur IPTV','btn-save-cfg':'💾 Sauvegarder la configuration','btn-close-cfg':'✕ Fermer',
+    'srv-name':'Nom du serveur','srv-url':'URL du panel','srv-login':'Login admin','srv-pass':'Mot de passe',
+    // toasts
+    'T_macOk':'✅ MAC extrait et copié !','T_bothOk':'📋 MAC + Key copiés !','T_portalOpen':'🔗 Portail ouvert — codes copiés',
+    'T_m3uOk':'📋 Lien M3U copié !','T_notFound':'⚠️ MAC non trouvé — saisissez manuellement',
+    'T_error':'⚠️ Erreur analyse — saisissez manuellement','T_needMac':'Entrez l\'adresse MAC',
+    'T_needPortal':'Entrez l\'URL du portail','T_needM3U':'Collez d\'abord le lien M3U depuis le panel',
+    'T_success':'🎉 Client activé avec succès !','T_saved':'💾 Configuration sauvegardée !',
+    'T_needPanel':'Sélectionnez un serveur IPTV ou configurez-en un',
+    'T_m3uConfirmed':'✅ Lien M3U confirmé !','T_copy':'Copier','T_copied':'✓ Copié',
+    'cfgOk':'✅ Configuré','cfgMissing':'⚠️ URL manquante',
+    'srvLabel':'Serveur','noServer':'Aucun serveur — configurez-en un ⚙️',
+  },
+  ar:{
+    'h-title':'IPTV <em>Pro</em> مدير','h-sub':'تفعيل • 3 مشغلات • اشتراك تجريبي',
+    'lbl-player':'① اختر المشغل','lbl-server':'② اختر الخادم','lbl-img':'③ صورة المشترك',
+    'drop-title':'اسحب الصورة هنا','drop-sub':'أو انقر لاختيار ملف','prev-lbl':'الصورة المستلمة',
+    'btn-clear':'✕ مسح','btn-manual':'✎ إدخال الرموز يدوياً',
+    'lbl-mmac':'عنوان MAC','lbl-mkey':'مفتاح الجهاز','btn-confirm':'✓ تأكيد والمتابعة',
+    'btn-scan':'🔍 تحليل الصورة واستخراج الرموز','analyzing':'جارٍ تحليل الصورة...',
+    'r-extracted':'الرموز المستخرجة','badge-ready':'جاهز','cf-mac':'عنوان MAC','cf-key':'مفتاح الجهاز',
+    'steps-lbl':'خطوات التفعيل',
+    's1t':'فتح بوابة رفع قائمة التشغيل','s1s':'إدخال MAC والمفتاح في بوابة المشغل',
+    's1info':'تم نسخ الرموز. افتح البوابة والصق MAC (والمفتاح إن طُلب) في الحقول، ثم أكّد.',
+    'btn-openp':'🔗 فتح','btn-copyboth':'📋 نسخ MAC + المفتاح','btn-s1done':'✓ تم — الخطوة التالية',
+    's2t':'إنشاء اشتراك تجريبي في اللوحة','s2s':'Add Line ← 48 ساعة ← نسخ رابط M3U',
+    'g1':'انقر على <span class="hl">Add Line</span> في لوحة IPTV',
+    'g2':'اختر <span class="hl">48 ساعة</span> من القائمة',
+    'g3':'أنشئ الحساب — لاحظ <span class="hl-g">username</span> و <span class="hl-g">password</span>',
+    'g4':'افتح ملف المستخدم الجديد → انسخ <span class="hl">رابط M3U</span> → عد هنا والصقه',
+    'btn-openpanel':'🔗 فتح لوحة IPTV','lbl-m3u-paste':'الصق هنا رابط M3U المنسوخ من اللوحة',
+    'm3u-lbl':'رابط M3U المُؤكَّد','btn-m3u-confirm':'✓ تأكيد الرابط','btn-s2done':'✓ تم — الخطوة التالية',
+    's3t':'لصق M3U في بوابة المشغل','s3s':'العودة للبوابة ولصق الرابط في حقل Playlist',
+    's3info':'عد إلى تبويب بوابة المشغل. في حقل <strong>Playlist URL</strong> أو <strong>M3U Link</strong> الصق الرابط. ثم اضغط تأكيد.',
+    'btn-recopy':'📋 إعادة نسخ الرابط','btn-reopen':'↩ العودة للبوابة','btn-s3done':'🎉 اكتمل !',
+    's-title':'تم تفعيل المشترك !','s-sub':'تم إنشاء اشتراك تجريبي 48 ساعة وإعداد القائمة.','btn-new':'➕ مشترك جديد',
+    'cfg-title':'الإعدادات','cfg-servers':'خوادم IPTV','cfg-players':'روابط بوابات المشغلات',
+    'btn-add-server':'+ إضافة خادم IPTV','btn-save-cfg':'💾 حفظ الإعدادات','btn-close-cfg':'✕ إغلاق',
+    'srv-name':'اسم الخادم','srv-url':'رابط اللوحة','srv-login':'اسم المسؤول','srv-pass':'كلمة المرور',
+    'T_macOk':'✅ تم استخراج MAC ونسخه !','T_bothOk':'📋 تم نسخ MAC والمفتاح !',
+    'T_portalOpen':'🔗 البوابة مفتوحة — الرموز منسوخة','T_m3uOk':'📋 تم نسخ رابط M3U !',
+    'T_notFound':'⚠️ لم يُعثر على MAC — أدخل يدوياً','T_error':'⚠️ خطأ — أدخل يدوياً',
+    'T_needMac':'أدخل عنوان MAC','T_needPortal':'أدخل رابط البوابة',
+    'T_needM3U':'الصق رابط M3U من اللوحة أولاً','T_success':'🎉 تم تفعيل المشترك بنجاح !',
+    'T_saved':'💾 تم حفظ الإعدادات !','T_needPanel':'اختر خادماً أو أضف خادماً جديداً',
+    'T_m3uConfirmed':'✅ تم تأكيد رابط M3U !','T_copy':'نسخ','T_copied':'✓ تم',
+    'cfgOk':'✅ مُعدَّل','cfgMissing':'⚠️ الرابط مفقود',
+    'srvLabel':'الخادم','noServer':'لا يوجد خادم — أضف واحداً ⚙️',
+  }
+};
+
+function tx(k) { return TX[lang][k] || TX.fr[k] || k; }
+
+/* ══ LANG ═════════════════════════════════════ */
+function setLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir  = l==='ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.textContent.trim()===(l==='ar'?'عربي':'FR')));
+  const t = TX[l];
+  for (const [id, val] of Object.entries(t)) {
+    if (id.startsWith('T_')) continue;
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (typeof val === 'string' && val.includes('<')) el.innerHTML = val;
+    else if (el) el.textContent = val;
+  }
+  // update dynamic copy buttons text
+  ['cp-mac','cp-key'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b && !b.classList.contains('ok')) b.textContent = tx('T_copy');
+  });
+  updateServerSelector();
+  updatePlayerStatus();
+}
+
+/* ══ PLAYER ═══════════════════════════════════ */
+function pickPlayer(p) {
+  player = p;
+  document.querySelectorAll('.pcard').forEach(c => c.classList.remove('on'));
+  document.getElementById('pc-'+p).classList.add('on');
+  const info = PLAYER_DEFAULTS[p];
+  document.getElementById('keyField').style.display = info.hasKey ? '' : 'none';
+  document.getElementById('mKeyFg').style.display   = info.hasKey ? '' : 'none';
+  document.getElementById('badge-player').textContent = info.name;
+  // pre-fill portal URL from cfg or default
+  const url = cfg.players[p] || info.url;
+  document.getElementById('portalUrlIn').value = url;
+}
+
+function updatePlayerStatus() {
+  Object.keys(PLAYER_DEFAULTS).forEach(p => {
+    const el = document.getElementById(p+'-cfg-status');
+    if (!el) return;
+    const url = cfg.players[p] || '';
+    el.textContent = url ? tx('cfgOk') : tx('cfgMissing');
+    el.className   = 'pcfg' + (url ? ' ok' : '');
+  });
+}
+
+/* ══ SERVER SELECTOR ══════════════════════════ */
+function updateServerSelector() {
+  const sec = document.getElementById('serverSelSection');
+  const row = document.getElementById('serverSelRow');
+  if (!cfg.servers || cfg.servers.length === 0) {
+    sec.style.display = 'none'; return;
+  }
+  sec.style.display = '';
+  row.innerHTML = '';
+  cfg.servers.forEach((srv, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'ssel' + (selectedServer === i ? ' on' : '');
+    btn.textContent = srv.name || tx('srvLabel')+' '+(i+1);
+    btn.onclick = () => selectServer(i);
+    row.appendChild(btn);
+  });
+  // update lbl-img to ③
+  const lblImg = document.getElementById('lbl-img');
+  if (lblImg) {
+    const t = tx('lbl-img');
+    lblImg.textContent = t.replace('②','③');
+  }
+}
+
+function selectServer(i) {
+  selectedServer = i;
+  document.querySelectorAll('.ssel').forEach((b,idx) => b.classList.toggle('on', idx===i));
+}
+
+function getSelectedServerUrl() {
+  if (selectedServer !== null && cfg.servers[selectedServer]) return cfg.servers[selectedServer].url;
+  return null;
+}
+
+/* ══ FILE HANDLING ════════════════════════════ */
+function onDrag(e, on) { e.preventDefault(); document.getElementById('dropZone').classList.toggle('over',!!on); }
+function onDrop(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('over'); const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) loadFile(f); }
+function onFile(e) { const f=e.target.files[0]; if(f) loadFile(f); }
+
+function loadFile(f) {
+  const r = new FileReader();
+  r.onload = e => {
+    imgB64 = e.target.result.split(',')[1];
+    document.getElementById('prevImg').src = e.target.result;
+    document.getElementById('preview').classList.add('show');
+    document.getElementById('analyzeBtn').disabled = false;
+    document.getElementById('mbox').classList.remove('show');
+  };
+  r.readAsDataURL(f);
+}
+
+function clearImg() {
+  imgB64 = '';
+  document.getElementById('preview').classList.remove('show');
+  document.getElementById('prevImg').src = '';
+  document.getElementById('fileIn').value = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('rcard').classList.remove('show');
+}
+
+function toggleManual() { document.getElementById('mbox').classList.toggle('show'); }
+
+function useManual() {
+  const m = document.getElementById('mMac').value.trim();
+  const k = document.getElementById('mKey').value.trim();
+  if (!m) { showToast(tx('T_needMac'),'warn'); return; }
+  showResult(m, k);
+}
+
+/* ══ ANALYZE ══════════════════════════════════ */
+async function analyze() {
+  if (!imgB64) return;
+  document.getElementById('btn-scan').style.display = 'none';
+  document.getElementById('btnSpin').style.display  = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  const info = PLAYER_DEFAULTS[player];
+  const prompt = `Analyze this screenshot from the media player app "${info.name}".
+Extract the following:
+1. MAC Address (format XX:XX:XX:XX:XX:XX)
+${info.hasKey ? '2. Device Key (labeled Key, Device Key, Code, or similar)' : ''}
+Respond ONLY with a raw JSON object, no markdown, no text before or after:
+{"mac":"...","deviceKey":"..."}
+Use null for any field not visible in the image.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:256,
+        messages:[{ role:'user', content:[
+          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:imgB64}},
+          {type:'text',  text:prompt}
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const raw  = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    let parsed;
+    try { parsed = JSON.parse(raw); }
+    catch { const m=raw.match(/([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}/); parsed={mac:m?m[0]:null,deviceKey:null}; }
+    if (!parsed || !parsed.mac) {
+      showToast(tx('T_notFound'),'warn');
+      document.getElementById('mbox').classList.add('show');
+    } else {
+      showResult(parsed.mac, parsed.deviceKey||'');
+    }
+  } catch {
+    showToast(tx('T_error'),'warn');
+    document.getElementById('mbox').classList.add('show');
+  }
+  document.getElementById('btn-scan').style.display = '';
+  document.getElementById('btnSpin').style.display  = 'none';
+  document.getElementById('analyzeBtn').disabled = false;
+}
+
+/* ══ SHOW RESULT ══════════════════════════════ */
+function showResult(m, k) {
+  MAC = m; KEY = k || '';
+  document.getElementById('dMac').textContent = MAC;
+  document.getElementById('dKey').textContent = KEY || 'N/A';
+  document.getElementById('keyField').style.display = PLAYER_DEFAULTS[player].hasKey ? '' : 'none';
+  document.getElementById('badge-player').textContent = PLAYER_DEFAULTS[player].name;
+  document.getElementById('badge-ready').textContent  = tx('badge-ready');
+  const url = cfg.players[player] || PLAYER_DEFAULTS[player].url;
+  document.getElementById('portalUrlIn').value = url;
+  document.getElementById('rcard').classList.add('show');
+  document.getElementById('rcard').scrollIntoView({behavior:'smooth', block:'start'});
+  navigator.clipboard.writeText(MAC).catch(()=>{});
+  showToast(tx('T_macOk'),'ok');
+}
+
+/* ══ COPY UTILS ═══════════════════════════════ */
+function copyField(valId, btnId) {
+  const v = document.getElementById(valId).textContent;
+  navigator.clipboard.writeText(v).then(() => {
+    const b = document.getElementById(btnId);
+    b.textContent = tx('T_copied'); b.classList.add('ok');
+    setTimeout(()=>{ b.textContent=tx('T_copy'); b.classList.remove('ok'); }, 2200);
+  });
+}
+
+function copyBoth() {
+  let v = MAC;
+  if (PLAYER_DEFAULTS[player].hasKey && KEY) v += '\n' + KEY;
+  navigator.clipboard.writeText(v).then(()=>showToast(tx('T_bothOk'),'ok'));
+}
+
+/* ══ PORTAL ═══════════════════════════════════ */
+function openPortal() {
+  portalOpened = document.getElementById('portalUrlIn').value.trim();
+  if (!portalOpened) { showToast(tx('T_needPortal'),'warn'); return; }
+  copyBoth();
+  window.open(portalOpened,'_blank');
+  showToast(tx('T_portalOpen'),'ok');
+}
+function reopenPortal() { if (portalOpened) window.open(portalOpened,'_blank'); }
+
+/* ══ PANEL ════════════════════════════════════ */
+function openMyPanel() {
+  const url = getSelectedServerUrl();
+  if (!url) { showToast(tx('T_needPanel'),'warn'); return; }
+  window.open(url,'_blank');
+}
+
+/* ══ M3U ══════════════════════════════════════ */
+function onM3UInput() {
+  const v = document.getElementById('m3uPasteIn').value.trim();
+  if (v.startsWith('http')) {
+    document.getElementById('m3uVal').textContent = v;
+    document.getElementById('m3uPreview').classList.add('show');
+  } else {
+    document.getElementById('m3uPreview').classList.remove('show');
+  }
+}
+
+function confirmM3U() {
+  const v = document.getElementById('m3uPasteIn').value.trim();
+  if (!v || !v.startsWith('http')) { showToast(tx('T_needM3U'),'warn'); return; }
+  M3U_CONFIRMED = v;
+  navigator.clipboard.writeText(M3U_CONFIRMED).catch(()=>{});
+  document.getElementById('btn-m3u-confirm').style.display = 'none';
+  document.getElementById('btn-s2done').style.display      = '';
+  showToast(tx('T_m3uConfirmed'),'ok');
+}
+
+function recopyM3U() {
+  if (!M3U_CONFIRMED) { showToast(tx('T_needM3U'),'warn'); return; }
+  navigator.clipboard.writeText(M3U_CONFIRMED).then(()=>showToast(tx('T_m3uOk'),'ok'));
+}
+
+/* ══ STEPS ════════════════════════════════════ */
+function stepDone(n) {
+  const st = document.getElementById('st'+n);
+  st.classList.remove('active'); st.classList.add('done');
+  document.getElementById('sn'+n).textContent = '✓';
+  if (n < 3) {
+    activeStep = n+1;
+    const next = document.getElementById('st'+activeStep);
+    next.classList.add('active');
+    // for step 2 → 3, copy M3U auto
+    if (n===2 && M3U_CONFIRMED) navigator.clipboard.writeText(M3U_CONFIRMED).catch(()=>{});
+    setTimeout(()=>next.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+  } else {
+    finalize();
+  }
+}
+
+function finalize() {
+  document.getElementById('rcard').style.display = 'none';
+  const srv = selectedServer!==null && cfg.servers[selectedServer] ? cfg.servers[selectedServer].name : '—';
+  const pname = PLAYER_DEFAULTS[player].name;
+  const r = TX[lang];
+  document.getElementById('recapBox').innerHTML =
+    `Player: <span class="rv">${pname}</span><br>` +
+    (cfg.servers.length>0 ? `Serveur: <span class="rv">${srv}</span><br>` : '') +
+    `MAC: <span class="rv">${MAC}</span><br>` +
+    (PLAYER_DEFAULTS[player].hasKey && KEY ? `Key: <span class="rv">${KEY}</span><br>` : '') +
+    `M3U: <span class="rv">${M3U_CONFIRMED ? '✅ Activé' : '—'}</span>`;
+  document.getElementById('successSec').classList.add('show');
+  document.getElementById('successSec').scrollIntoView({behavior:'smooth'});
+  showToast(tx('T_success'),'ok');
+}
+
+function newClient() {
+  MAC=''; KEY=''; M3U_CONFIRMED=''; portalOpened=''; imgB64=''; activeStep=1;
+  clearImg();
+  document.getElementById('successSec').classList.remove('show');
+  document.getElementById('rcard').style.display = '';
+  document.getElementById('rcard').classList.remove('show');
+  document.getElementById('m3uPreview').classList.remove('show');
+  document.getElementById('m3uPasteIn').value = '';
+  document.getElementById('mMac').value = '';
+  document.getElementById('mKey').value = '';
+  document.getElementById('mbox').classList.remove('show');
+  document.getElementById('btn-m3u-confirm').style.display = '';
+  document.getElementById('btn-s2done').style.display = 'none';
+  [1,2,3].forEach(n => {
+    const s=document.getElementById('st'+n);
+    s.classList.remove('active','done');
+    document.getElementById('sn'+n).textContent=n;
+  });
+  document.getElementById('st1').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ══ SETTINGS ═════════════════════════════════ */
+function openSettings() {
+  renderServersList();
+  // fill player urls
+  Object.keys(PLAYER_DEFAULTS).forEach(p => {
+    document.getElementById('cfg-'+p+'-url').value = cfg.players[p] || PLAYER_DEFAULTS[p].url;
+  });
+  document.getElementById('settingsOverlay').classList.add('show');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+}
+
+function renderServersList() {
+  const container = document.getElementById('serversList');
+  container.innerHTML = '';
+  if (!cfg.servers || cfg.servers.length===0) {
+    container.innerHTML = `<div style="font-size:12px;color:var(--ink3);padding:8px 0;">${tx('noServer')}</div>`;
+    return;
+  }
+  cfg.servers.forEach((srv,i) => {
+    const card = document.createElement('div');
+    card.className = 'server-card';
+    card.innerHTML = `
+      <div class="server-name">🖥️ ${srv.name||('Serveur '+(i+1))}
+        <span style="font-size:10px;color:var(--ink3);font-family:var(--mono);font-weight:400;">${srv.url||''}</span>
+      </div>
+      <div class="g2">
+        <div class="fg span2">
+          <label>${tx('srv-name')}</label>
+          <input type="text" class="srv-name-in" data-i="${i}" value="${escHtml(srv.name||'')}" placeholder="Mon serveur IPTV" spellcheck="false">
+        </div>
+        <div class="fg span2">
+          <label>${tx('srv-url')}</label>
+          <input type="text" class="srv-url-in" data-i="${i}" value="${escHtml(srv.url||'')}" placeholder="https://monpanel.com:8080/login" spellcheck="false">
+        </div>
+        <div class="fg">
+          <label>${tx('srv-login')}</label>
+          <input type="text" class="srv-login-in" data-i="${i}" value="${escHtml(srv.login||'')}" placeholder="admin" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="fg">
+          <label>${tx('srv-pass')}</label>
+          <input type="password" class="srv-pass-in" data-i="${i}" value="${escHtml(srv.pass||'')}" placeholder="••••••" autocomplete="new-password">
+        </div>
+      </div>
+      <button class="server-del" onclick="deleteServer(${i})">🗑</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function addServer() {
+  if (!cfg.servers) cfg.servers = [];
+  cfg.servers.push({name:'', url:'', login:'', pass:''});
+  renderServersList();
+}
+
+function deleteServer(i) {
+  cfg.servers.splice(i,1);
+  if (selectedServer===i) selectedServer=null;
+  else if (selectedServer>i) selectedServer--;
+  renderServersList();
+}
+
+function saveSettings() {
+  // read servers
+  if (!cfg.servers) cfg.servers = [];
+  cfg.servers.forEach((srv,i) => {
+    const n  = document.querySelector(`.srv-name-in[data-i="${i}"]`);
+    const u  = document.querySelector(`.srv-url-in[data-i="${i}"]`);
+    const l  = document.querySelector(`.srv-login-in[data-i="${i}"]`);
+    const p  = document.querySelector(`.srv-pass-in[data-i="${i}"]`);
+    if(n) srv.name  = n.value.trim();
+    if(u) srv.url   = u.value.trim();
+    if(l) srv.login = l.value.trim();
+    if(p) srv.pass  = p.value;
+  });
+  // read player urls
+  Object.keys(PLAYER_DEFAULTS).forEach(p => {
+    const el = document.getElementById('cfg-'+p+'-url');
+    if (el) cfg.players[p] = el.value.trim() || PLAYER_DEFAULTS[p].url;
+  });
+  saveCfg();
+  updateServerSelector();
+  updatePlayerStatus();
+  closeSettings();
+  showToast(tx('T_saved'),'ok');
+}
+
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+/* ══ TOAST ════════════════════════════════════ */
+let _tid;
+function showToast(msg, cls='inf') {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+cls+' show';
+  clearTimeout(_tid); _tid=setTimeout(()=>t.classList.remove('show'),3400);
+}
+
+/* ══ INIT ═════════════════════════════════════ */
+(function init() {
+  loadCfg();
+  pickPlayer('ibo');
+  updateServerSelector();
+  updatePlayerStatus();
+  // if no servers, open settings on first load
+  if (!cfg.servers || cfg.servers.length===0) {
+    // show a gentle prompt instead of forcing open
+  }
+})();
+</script>
+</body>
+</html>
