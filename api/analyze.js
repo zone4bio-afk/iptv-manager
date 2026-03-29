@@ -67,13 +67,16 @@ module.exports = async function handler(req, res) {
   console.log('Image size (chars):', imageBase64.length);
   console.log('Player:', playerName, 'hasKey:', hasKey);
 
-  const prompt = `Look at this screenshot from the app "${playerName || 'IPTV Player'}".
-Find and extract:
-1. MAC Address — 6 hex pairs like AA:BB:CC:DD:EE:FF (labeled MAC, Adresse Mac, or similar)
-${hasKey ? '2. Device Key — short code labeled Key, Device Key, Clé de l\'appareil (may be just digits like 325281)' : ''}
-Reply ONLY with JSON:
+  const prompt = `This screenshot shows an IPTV media player info screen. The image may be a photo of a phone taken during a video call, or a direct screenshot. Look carefully at ALL visible text.
+
+Extract:
+1. MAC Address: format XX:XX:XX:XX:XX:XX (6 hex pairs with colons). Look for labels like "Adresse Mac", "MAC", "MAC Address". Example: 44:90:53:de:7f:4f
+${hasKey ? '2. Device Key: short code after labels like "Cle de l\'appareil", "Device Key", "Key". Often just digits. Example: 325281' : ''}
+
+Text may appear in yellow, orange or white. Search the entire image carefully.
+Reply ONLY with JSON, nothing else:
 {"mac":"XX:XX:XX:XX:XX:XX","deviceKey":"XXXXX"}
-Use null if not found.`;
+Use null for missing values.`;
 
   try {
     const result = await callAnthropic(apiKey, {
